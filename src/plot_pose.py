@@ -6,6 +6,7 @@ author: Gary-W
 from config_parser import TextParser
 from vehicle_model import CanMatchLog,VehicleMotion, can_insert
 from draw_map import PosMap
+import numpy as np
 
 def read_can_log(can_filename):
     can_match_logs = []
@@ -29,7 +30,9 @@ def generate_pose(can_match_logs):
         vhcl_can_data.data["time_stamp"] *= time_unit
         if _i > 0:
             times = (vhcl_can_data.data["time_stamp"] - _vhcl_can_data.data["time_stamp"]) / time_unit
-            can_log_ist = can_insert(_vhcl_can_data, vhcl_can_data, times)
+#             print "ori detal time = ", vhcl_can_data.data["time_stamp"] - _vhcl_can_data.data["time_stamp"]
+            
+            can_log_ist = can_insert(_vhcl_can_data, vhcl_can_data, times=times)
 #             print times, len(can_log_ist)
 #             print "A", _vhcl_can_data
 #             print "B", vhcl_can_data
@@ -37,11 +40,10 @@ def generate_pose(can_match_logs):
                 time_stamp1 = can_log_ist[t-1].data["time_stamp"]
                 time_stamp2 = can_log_ist[t].data["time_stamp"]
                 time_offset = time_stamp2 - time_stamp1
-#                 print can_log_ist[t]
                 vm.traject_predict_world(can_log_ist[t], time_offset)
-                pose.append((vm.pos.x, vm.pos.y, vm.theta))
-
+                pose.append((vm.pos.x, vm.pos.y, vm.theta, vm.radius))
         _vhcl_can_data =  vhcl_can_data
+
     return pose
 
 def disp_pose(vm_pose):
@@ -49,8 +51,9 @@ def disp_pose(vm_pose):
     cfg_tabel = cfg_parser("data/vehicle_config.cfg")
     mapper = PosMap(cfg_tabel)
     for pos in vm_pose:
-        pos_x, pos_y, pos_yaw = pos
+        pos_x, pos_y, pos_yaw, r = pos
         mapper.mark_position(pos_x, pos_y, pos_yaw)
+        print "radius = ", r
     mapper.disp_map()
 
 def main():

@@ -6,13 +6,9 @@ Created on 2016年12月17日
 运动模型相关，用于解析can信号并转换为位姿数据
 '''
 import numpy as np
-
+from numpy import cos, sin, tan, abs
+from load_mat import LinearTable,calc_radius,load_table
 FLT_MIN = 1.175494351e-38
-
-_Forward_R = 0
-_Forward_L = 1
-_Backward_R = 2
-_Backward_L = 3
 
 TIME_SCALE = 1
 
@@ -33,7 +29,7 @@ class CanMatchLog:
         self.data["frameID"] = int(strframeId)
         can_data = [float(item) for item in str_can_data]
 
-        speed_unit = 3.6
+        speed_unit = 1
         
         self.data["time_stamp"] = int(can_data[0])   # us
         self.data["shift_pos"] = can_data[1]
@@ -93,7 +89,10 @@ class VehicleMotion:
         self.track = 0.     # distance from origin to the current position
         self.theta = 0.     # heading degree of vehicle
         self.pos = self.Point() # position of vehicle in world coordinate
-
+        self.linear_table_list = load_table()
+        self.radius = 0.
+        
+        
     def _steeringwheel_radius(self, str_whl_angle, shft_pos):
         """ 运动半径计算
         input:
@@ -102,14 +101,18 @@ class VehicleMotion:
         output:
           radius: 运动半径
         """
-        # clk_wise
-        if str_whl_angle < 0:
-            radius = 2.81 / np.tan((5.955e-06*(-str_whl_angle)*(-str_whl_angle) + 0.05241*(-str_whl_angle) + 0.7268)*np.pi / 180) - 1.86 / 2
-        # anti-clk_wise
-        else:
-            radius = 2.81 / np.tan((5.955e-06*(str_whl_angle)*(str_whl_angle) + 0.05241*(str_whl_angle) + 0.7268)*np.pi / 180) - 1.86 / 2 
-
-        return radius
+        self.radius = calc_radius(self.linear_table_list, str_whl_angle)
+#         if str_whl_angle < 0:
+# #             self.radius = 2.81 / np.tan((5.955e-06*(-str_whl_angle)*(-str_whl_angle) + 0.05241*(-str_whl_angle) + 0.7268)*np.pi / 180) - 1.86 / 2
+#             self.radius = 1.405 *(1.0/ np.tan((-1.26e-07*str_whl_angle*str_whl_angle*str_whl_angle -3.465e-05*str_whl_angle*str_whl_angle\
+#                          -0.07095*str_whl_angle+0.005486)*np.pi / 180)+ 1.0/ np.tan((-1.117e-08*str_whl_angle*str_whl_angle*str_whl_angle \
+#                         -8.026e-06*str_whl_angle*str_whl_angle -0.06596*str_whl_angle+ 0.1141)*np.pi / 180))
+#         else:
+# #             self.radius = 2.81 / np.tan((5.955e-06*(str_whl_angle)*(str_whl_angle) + 0.05241*(str_whl_angle) + 0.7268)*np.pi / 180) - 1.86 / 2
+#             self.radius = 1.405 *(1.0/ np.tan((1.268e-08*str_whl_angle*str_whl_angle*str_whl_angle -8.519e-06*str_whl_angle*str_whl_angle \
+#                         +0.06658*str_whl_angle+0.09346)*np.pi / 180)+ 1.0/ np.tan((1.022e-07*str_whl_angle*str_whl_angle*str_whl_angle \
+#                         -2.414e-05*str_whl_angle*str_whl_angle +0.06928*str_whl_angle+ 0.007839)*np.pi / 180))
+        return self.radius
         
     def traject_predict_world(self, vhcl_can_data, time_offset):
         """ 使用运动模型计算车辆的世界坐标系
@@ -121,41 +124,85 @@ class VehicleMotion:
         shft_pos = vhcl_can_data.data["shift_pos"]
         str_whl_angle = vhcl_can_data.data["steering_angle"]
         radius = self._steeringwheel_radius(str_whl_angle, shft_pos)
-        speed = (vhcl_can_data.data["wheel_speed_rl"] + vhcl_can_data.data["wheel_speed_rr"])/2
+        speed = (vhcl_can_data.data["wheel_speed_rl"] + vhcl_can_data.data["wheel_speed_rr"])/2/3.6 # 将速度从km/h -> m/s
+        track_offset = time_offset / 1000000.0 *speed
+        track_offset /= TIME_SCALE
+        
+        if shft_pos == 2:
+            if str_whl_angle < 0:
+                theta_offset = track_offset/radius
+                x_offset = radius*(1-cos(abs(theta_offset)))
+                y_offset = radius*sin(abs(theta_offset))
+                self.pos.x = self.pos.x+cos(self.theta)*x_offset+sin(self.theta)*y_offset
+                self.pos.y = self.pos.y-sin(self.theta)*x_offset+cos(self.theta)*y_offset
+                self.theta += theta_offset
+            else:
+                theta_offset = -track_offset/radius
+                x_offset = -radius*(1-cos(abs(theta_offset)))
+                y_offset = radius*sin(abs(theta_offset))
+                self.pos.x = self.pos.x+cos(self.theta)*x_offset+sin(self.theta)*y_offset
+                self.pos.y = self.pos.y-sin(self.theta)*x_offset+cos(self.theta)*y_offset
+                self.theta += theta_offset
+        else:
+            if str_whl_angle<0:
+                theta_offset = -track_offset/radius
+                x_offset = radius*(1-cos(abs(theta_offset)))
+                y_offset = -radius*sin(abs(theta_offset))
+                self.pos.x = self.pos.x+cos(self.theta)*x_offset+sin(self.theta)*y_offset
+                self.pos.y = self.pos.y-sin(self.theta)*x_offset+cos(self.theta)*y_offset
+                self.theta += theta_offset
+            else:
+                theta_offset = track_offset/radius
+                x_offset = -radius*(1-cos(abs(theta_offset)))
+                y_offset = -radius*sin(abs(theta_offset))
+                self.pos.x = self.pos.x+cos(self.theta)*x_offset+sin(self.theta)*y_offset
+                self.pos.y = self.pos.y-sin(self.theta)*x_offset+cos(self.theta)*y_offset
+                self.theta += theta_offset
+                
+    def traject_predict_world_transpose(self, vhcl_can_data, time_offset):
+        """ 使用运动模型计算车辆的世界坐标系
+        每次调用都会更新 theta 和 pos
+        input:
+          vhcl_can_data: 当前帧CanLog信息
+          time_offset: 距离上一帧的时间差
+        """
+        shft_pos = vhcl_can_data.data["shift_pos"]
+        str_whl_angle = vhcl_can_data.data["steering_angle"]
+        radius = self._steeringwheel_radius(str_whl_angle, shft_pos)
+        speed = (vhcl_can_data.data["wheel_speed_rl"] + vhcl_can_data.data["wheel_speed_rr"])/2/3.6 # 将速度从km/h -> m/s
         track_offset = time_offset / 1000000.0 *speed
         track_offset /= TIME_SCALE
         
         if shft_pos == 2:
             if str_whl_angle < 0:
                 theta_offset = track_offset/radius;
-                x_offset = radius*(1-np.cos(np.abs(theta_offset)));
-                y_offset = radius*np.sin(np.abs(theta_offset));
-                self.pos.x = self.pos.x+np.cos(self.theta)*x_offset+np.sin(self.theta)*y_offset;
-                self.pos.y = self.pos.y-np.sin(self.theta)*x_offset+np.cos(self.theta)*y_offset;
+                y_offset = radius*(1-cos(abs(theta_offset)));
+                x_offset = radius*sin(abs(theta_offset));
+                self.pos.x = self.pos.x+cos(self.theta)*x_offset+sin(self.theta)*y_offset;
+                self.pos.y = self.pos.y+sin(self.theta)*x_offset-cos(self.theta)*y_offset;
                 self.theta += theta_offset;
             else:
                 theta_offset = -track_offset/radius;
-                x_offset = -radius*(1-np.cos(np.abs(theta_offset)));
-                y_offset = radius*np.sin(np.abs(theta_offset));
-                self.pos.x = self.pos.x+np.cos(self.theta)*x_offset+np.sin(self.theta)*y_offset;
-                self.pos.y = self.pos.y-np.sin(self.theta)*x_offset+np.cos(self.theta)*y_offset;
+                y_offset = -radius*(1-cos(abs(theta_offset)));
+                x_offset = radius*sin(abs(theta_offset));
+                self.pos.x = self.pos.x+cos(self.theta)*x_offset+sin(self.theta)*y_offset;
+                self.pos.y = self.pos.y+sin(self.theta)*x_offset-cos(self.theta)*y_offset;
                 self.theta += theta_offset;
         else:
             if str_whl_angle<0:
                 theta_offset = -track_offset/radius;
-                x_offset = radius*(1-np.cos(np.abs(theta_offset)));
-                y_offset = -radius*np.sin(np.abs(theta_offset));
-                self.pos.x = self.pos.x+np.cos(self.theta)*x_offset+np.sin(self.theta)*y_offset;
-                self.pos.y = self.pos.y-np.sin(self.theta)*x_offset+np.cos(self.theta)*y_offset;
+                y_offset = radius*(1-cos(abs(theta_offset)));
+                x_offset = -radius*sin(abs(theta_offset));
+                self.pos.x = self.pos.x+cos(self.theta)*x_offset+sin(self.theta)*y_offset;
+                self.pos.y = self.pos.y+sin(self.theta)*x_offset-cos(self.theta)*y_offset;
                 self.theta += theta_offset;
             else:
                 theta_offset = track_offset/radius;
-                x_offset = -radius*(1-np.cos(np.abs(theta_offset)));
-                y_offset = -radius*np.sin(np.abs(theta_offset));
-                self.pos.x = self.pos.x+np.cos(self.theta)*x_offset+np.sin(self.theta)*y_offset;
-                self.pos.y = self.pos.y-np.sin(self.theta)*x_offset+np.cos(self.theta)*y_offset;
+                y_offset = -radius*(1-cos(abs(theta_offset)));
+                x_offset = -radius*sin(abs(theta_offset));
+                self.pos.x = self.pos.x+cos(self.theta)*x_offset+sin(self.theta)*y_offset;
+                self.pos.y = self.pos.y+sin(self.theta)*x_offset-cos(self.theta)*y_offset;
                 self.theta += theta_offset;
-
 
 def main():
     pass
