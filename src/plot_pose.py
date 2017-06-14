@@ -33,10 +33,11 @@ def generate_pose(can_match_logs):
 #             print "ori detal time = ", vhcl_can_data.data["time_stamp"] - _vhcl_can_data.data["time_stamp"]
             
             can_log_ist = can_insert(_vhcl_can_data, vhcl_can_data, times=times)
-#             print times, len(can_log_ist)
-#             print "A", _vhcl_can_data
-#             print "B", vhcl_can_data
+            print times, len(can_log_ist)
+            print "A", _vhcl_can_data
+            print "B", vhcl_can_data
             for t in range(1, len(can_log_ist)):
+                print "i=",t, can_log_ist[t-1]
                 time_stamp1 = can_log_ist[t-1].data["time_stamp"]
                 time_stamp2 = can_log_ist[t].data["time_stamp"]
                 time_offset = time_stamp2 - time_stamp1
@@ -53,11 +54,11 @@ def disp_pose(vm_pose):
     for pos in vm_pose:
         pos_x, pos_y, pos_yaw, r = pos
         mapper.mark_position(pos_x, pos_y, pos_yaw)
-        print "radius = ", r
+#         print "radius = ", r
     mapper.disp_map()
 
 def main():
-    can_filename = r"data/can_match_0519_ep21_01_v2.txt"
+    can_filename = r"data/can_match_0519_ep21_01_v1.txt"
     can_match_logs = read_can_log (can_filename)
     vm_pose = generate_pose(can_match_logs)
     disp_pose(vm_pose)

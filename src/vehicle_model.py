@@ -36,10 +36,10 @@ class CanMatchLog:
         self.data["steering_angle"] = can_data[2]   # deg
         self.data["vehicle_speed"] = can_data[3]/speed_unit    # kmh
         self.data["yaw_rate"] = can_data[4]         # deg/s
-        self.data["wheel_speed_rl"] = can_data[5]/speed_unit   # kmh
-        self.data["wheel_speed_fl"] = can_data[6]/speed_unit   # kmh
-        self.data["wheel_speed_rr"] = can_data[7]/speed_unit   # kmh
-        self.data["wheel_speed_fr"] = can_data[8]/speed_unit   # kmh
+        self.data["wheel_speed_fl"] = can_data[5]/speed_unit   # kmh
+        self.data["wheel_speed_rl"] = can_data[6]/speed_unit   # kmh
+        self.data["wheel_speed_fr"] = can_data[7]/speed_unit   # kmh
+        self.data["wheel_speed_rr"] = can_data[8]/speed_unit   # kmh
     
     def __repr__(self):
         return "%d %d %d %f %f" % (self.data["frameID"], self.data["time_stamp"], self.data["shift_pos"],
@@ -101,17 +101,17 @@ class VehicleMotion:
         output:
           radius: ÔË¶¯°ë¾¶
         """
-        self.radius = calc_radius(self.linear_table_list, str_whl_angle)
-#         if str_whl_angle < 0:
-# #             self.radius = 2.81 / np.tan((5.955e-06*(-str_whl_angle)*(-str_whl_angle) + 0.05241*(-str_whl_angle) + 0.7268)*np.pi / 180) - 1.86 / 2
-#             self.radius = 1.405 *(1.0/ np.tan((-1.26e-07*str_whl_angle*str_whl_angle*str_whl_angle -3.465e-05*str_whl_angle*str_whl_angle\
-#                          -0.07095*str_whl_angle+0.005486)*np.pi / 180)+ 1.0/ np.tan((-1.117e-08*str_whl_angle*str_whl_angle*str_whl_angle \
-#                         -8.026e-06*str_whl_angle*str_whl_angle -0.06596*str_whl_angle+ 0.1141)*np.pi / 180))
-#         else:
-# #             self.radius = 2.81 / np.tan((5.955e-06*(str_whl_angle)*(str_whl_angle) + 0.05241*(str_whl_angle) + 0.7268)*np.pi / 180) - 1.86 / 2
-#             self.radius = 1.405 *(1.0/ np.tan((1.268e-08*str_whl_angle*str_whl_angle*str_whl_angle -8.519e-06*str_whl_angle*str_whl_angle \
-#                         +0.06658*str_whl_angle+0.09346)*np.pi / 180)+ 1.0/ np.tan((1.022e-07*str_whl_angle*str_whl_angle*str_whl_angle \
-#                         -2.414e-05*str_whl_angle*str_whl_angle +0.06928*str_whl_angle+ 0.007839)*np.pi / 180))
+#         self.radius = calc_radius(self.linear_table_list, str_whl_angle)
+        if str_whl_angle < 0:
+#             self.radius = 2.81 / np.tan((5.955e-06*(-str_whl_angle)*(-str_whl_angle) + 0.05241*(-str_whl_angle) + 0.7268)*np.pi / 180) - 1.86 / 2
+            self.radius = 1.405 *(1.0/ np.tan((-1.26e-07*str_whl_angle*str_whl_angle*str_whl_angle -3.465e-05*str_whl_angle*str_whl_angle\
+                         -0.07095*str_whl_angle+0.005486)*np.pi / 180)+ 1.0/ np.tan((-1.117e-08*str_whl_angle*str_whl_angle*str_whl_angle \
+                        -8.026e-06*str_whl_angle*str_whl_angle -0.06596*str_whl_angle+ 0.1141)*np.pi / 180))
+        else:
+#             self.radius = 2.81 / np.tan((5.955e-06*(str_whl_angle)*(str_whl_angle) + 0.05241*(str_whl_angle) + 0.7268)*np.pi / 180) - 1.86 / 2
+            self.radius = 1.405 *(1.0/ np.tan((1.268e-08*str_whl_angle*str_whl_angle*str_whl_angle -8.519e-06*str_whl_angle*str_whl_angle \
+                        +0.06658*str_whl_angle+0.09346)*np.pi / 180)+ 1.0/ np.tan((1.022e-07*str_whl_angle*str_whl_angle*str_whl_angle \
+                        -2.414e-05*str_whl_angle*str_whl_angle +0.06928*str_whl_angle+ 0.007839)*np.pi / 180))
         return self.radius
         
     def traject_predict_world(self, vhcl_can_data, time_offset):
