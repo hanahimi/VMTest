@@ -30,7 +30,7 @@ class CanMatchLog:
         can_data = [float(item) for item in str_can_data]
 
         speed_unit = 1
-        
+        self.strframeId = strframeId
         self.data["time_stamp"] = int(can_data[0])   # us
         self.data["shift_pos"] = can_data[1]
         self.data["steering_angle"] = can_data[2]   # deg
@@ -127,7 +127,7 @@ class VehicleMotion:
         speed = (vhcl_can_data.data["wheel_speed_rl"] + vhcl_can_data.data["wheel_speed_rr"])/2/3.6 # 将速度从km/h -> m/s
         track_offset = time_offset / 1000000.0 *speed
         track_offset /= TIME_SCALE
-        
+        print "s:",str_whl_angle, "r:",radius
         if shft_pos == 2:
             if str_whl_angle < 0:
                 theta_offset = track_offset/radius
@@ -158,6 +158,7 @@ class VehicleMotion:
                 self.pos.x = self.pos.x+cos(self.theta)*x_offset+sin(self.theta)*y_offset
                 self.pos.y = self.pos.y-sin(self.theta)*x_offset+cos(self.theta)*y_offset
                 self.theta += theta_offset
+        
                 
     def traject_predict_world_transpose(self, vhcl_can_data, time_offset):
         """ 使用运动模型计算车辆的世界坐标系
