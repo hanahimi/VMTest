@@ -81,13 +81,13 @@ class VehicleMotion:
           vehicle_width: mm ÷·æ‡
         Attribute:
           track: # distance from origin to the current position
-          theta: # heading degree of vehicle
+          theta: # heading degree of vehicle(rad)
           pos: # heading degree of vehicle
         """
         self._H = 1.*wheel_base / 1000
         self._W = 1.*vehicle_width / 1000
         self.track = 0.     # distance from origin to the current position
-        self.theta = 0.     # heading degree of vehicle
+        self.theta = 0.     # heading degree of vehicle(rad)
         self.pos = self.Point() # position of vehicle in world coordinate
         self.linear_table_list = load_table()
         self.radius = 0.
