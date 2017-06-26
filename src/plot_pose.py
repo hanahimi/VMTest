@@ -43,7 +43,8 @@ def disp_pose(vm_pose):
     for pos in vm_pose:
         pos_x, pos_y, pos_yaw, r, id_ = pos
         mapper.mark_position(pos_x, pos_y, pos_yaw)
-    mapper.disp_map()
+        mapper.disp_map()
+        print pos_x, pos_y, pos_yaw
 
 def save_pose(pos_filename, vm_pose):
     cfg_parser = TextParser()
