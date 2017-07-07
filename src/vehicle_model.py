@@ -92,6 +92,10 @@ class VehicleMotion:
         self.linear_table_list = load_table()
         self.radius = 0.
         
+    def setPosition(self,x,y,yaw_deg):
+        self.pos.x = x
+        self.pos.y = y
+        self.theta = np.deg2rad(yaw_deg)
         
     def _steeringwheel_radius(self, str_whl_angle, shft_pos):
         """ ‘À∂Ø∞Îæ∂º∆À„
@@ -206,9 +210,15 @@ class VehicleMotion:
                 self.theta += theta_offset;
 
 def main():
-    pass
-
-
+    vm = VehicleMotion()
+    x = np.arange(-600,600,0.1)
+    y = []
+    for i in range(len(x)):
+        y.append(vm._steeringwheel_radius(x[i], -2))
+    print min(y)
+    import matplotlib.pyplot as plt
+    plt.plot(x,y)
+    
 if __name__=="__main__":
     pass
     main()
