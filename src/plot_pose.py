@@ -9,7 +9,7 @@ from draw_map import PosMap
 import numpy as np
 
 start_point = [0,0,0] # xm,ym, deg
-rot_table = {}
+rot_table = {127:-2}
 
 def read_can_log(can_filename):
     can_match_logs = []
@@ -45,7 +45,7 @@ def disp_pose(vm_pose):
     for pos in vm_pose:
         pos_x, pos_y, pos_yaw, r, id_ = pos
         mapper.mark_position(pos_x, pos_y, pos_yaw)
-        print pos_x, pos_y, pos_yaw
+#         print pos_x, pos_y, pos_yaw
     mapper.disp_map()
 
 def save_pose(pos_filename, vm_pose):
@@ -60,7 +60,7 @@ def save_pose(pos_filename, vm_pose):
             f.write(msg)
 
 def main():
-    can_filename = r"data/can_match_0606_ep21_01_v1.txt"
+    can_filename = r"E:\saic_ug\2\can_match.txt"
     can_match_logs = read_can_log (can_filename)
     vm_pose = generate_pose(can_match_logs)
     disp_pose(vm_pose)

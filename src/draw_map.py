@@ -72,8 +72,8 @@ class PosMap:
         pil_x = int(1.0 * pos_x * self.coef[2] + self.coef[0])
         pil_y = int(1.0 * pos_y * self.coef[3] + self.coef[1])
         
-#         cv2.circle(self.map_img,(pil_x,pil_y),9,(19,162,247),-1)
-        cv2.circle(self.map_img,(pil_x,pil_y),2,(19,162,247),-1)
+        cv2.circle(self.map_img,(pil_x,pil_y),9,(19,162,247),-1)
+#         cv2.circle(self.map_img,(pil_x,pil_y),2,(19,162,247),-1)
         self.ischanged = True
 
         return self.map_img
