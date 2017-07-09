@@ -131,7 +131,7 @@ class VehicleMotion:
         speed = (vhcl_can_data.data["wheel_speed_rl"] + vhcl_can_data.data["wheel_speed_rr"])/2/3.6 # 将速度从km/h -> m/s
         track_offset = time_offset / 1000000.0 *speed
         track_offset /= TIME_SCALE
-        print "s:",str_whl_angle, "r:",radius
+#         print "s:",str_whl_angle, "r:",radius
         if shft_pos == 2:
             if str_whl_angle < 0:
                 theta_offset = track_offset/radius

@@ -59,7 +59,7 @@ class PosMap:
         
         return self.map_img
     
-    def mark_position(self, pos_x, pos_y, pos_yaw):
+    def mark_position(self, pos_x, pos_y, pos_yaw, keypoint=False):
         """ 将世界坐标系的点记录到图像中，改写原有图像
         input:
           pos_x, pos_y, pos_yaw
@@ -72,12 +72,23 @@ class PosMap:
         pil_x = int(1.0 * pos_x * self.coef[2] + self.coef[0])
         pil_y = int(1.0 * pos_y * self.coef[3] + self.coef[1])
         
-        cv2.circle(self.map_img,(pil_x,pil_y),9,(19,162,247),-1)
-#         cv2.circle(self.map_img,(pil_x,pil_y),2,(19,162,247),-1)
+        if keypoint:
+            cv2.circle(self.map_img,(pil_x,pil_y),5,(0,0,255),-1)
+        else:
+            cv2.circle(self.map_img,(pil_x,pil_y),9,(19,162,247),1)
+            cv2.circle(self.map_img,(pil_x,pil_y),2,(0,0,0),-1)
         self.ischanged = True
 
         return self.map_img
     
+    def mark_pose_id(self, pos_x, pos_y, pos_yaw, _id):
+        pos_x += self.w_offset[0]
+        pos_y += self.w_offset[1]
+        pil_x = int(1.0 * pos_x * self.coef[2] + self.coef[0])
+        pil_y = int(1.0 * pos_y * self.coef[3] + self.coef[1])
+        cv2.putText(self.map_img, str(_id),(pil_x,pil_y),  
+                        cv2.FONT_HERSHEY_PLAIN, 1.5, (200,0,200), thickness = 2,)
+        
     def mark_position_id(self, pos_x, pos_y, pos_yaw, _id, step=100):
         """ 将世界坐标系的点记录到图像中，改写原有图像
         input:
@@ -126,8 +137,12 @@ class PosMap:
         sub_roi[car_img!=0] = car_img[car_img!=0]
         return proj_img
 
-    def disp_map(self):
-        cv2.imshow("map",self.map_img)
+    def disp_map(self, filename=None):
+        h,w,_ = self.map_img.shape
+        imresize = cv2.resize(self.map_img, (w*2/3, h*2/3))
+        cv2.imshow("map",imresize)
+        if filename:
+            cv2.imwrite(filename,imresize)
         cv2.waitKey(0)
 
  
