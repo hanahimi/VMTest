@@ -9,15 +9,22 @@ from vehicle_model import CanMatchLog,VehicleMotion, can_insert
 from draw_map import PosMap
 import numpy as np
 
-can_filename = r"E:\LOC_Code_Dataset\oflim相机数据\ofilm_raw_data_ug\20170706_EP21_car01\2_中圈x1_右车道_2\can_match.txt"
+can_filename = r"E:\LOC_Code_Dataset\oflim相机数据\ofilm_raw_data_ug\20170715_EP21_car01\2_ 起点大圈好几圈\can_match.txt"
 can_dir = os.path.split(can_filename)[0]
 img_filename = can_dir + r"\pose_map.jpg"
 note_filename = can_dir + r"\pose_setting.cfg"
-start = 000
-stop = 8000
+start = 87
+stop = 2712
 start_point = [0, 0, 0] # xm, ym, deg
-rot_table = {587: -2, 139: -2}
-key_point = []
+rot_table = {217:2, 837:1, 500:-1, 813:2, 837:-0.5,968:2,1475:-2,
+             1752:1,1923:1,1938:-1,1983:2, 2007:1,2024:-1,
+             2243:2,2352:-1,2385:-1,
+             2521:2,2563:1,2604:-1}
+key_point = [88,311, 413, 500, 529,666,753, 824, 837, 
+             968, 1009, 1203, 1300, 1374, 1404, 1479,
+             1578, 1662,1732,1744, 1821, 1752, 1923, 1938, 2007, 2024,
+             2106,2194,2261,2385,2272,2352,2454,
+             2475,2521,2548,2604,2646,2712]
 
 
 def save_fit_table(note_filename):
