@@ -105,17 +105,25 @@ class VehicleMotion:
         output:
           radius: 运动半径
         """
-#         self.radius = calc_radius(self.linear_table_list, str_whl_angle)
+        
+        # EP21 1#
         if str_whl_angle < 0:
-#             self.radius = 2.81 / np.tan((5.955e-06*(-str_whl_angle)*(-str_whl_angle) + 0.05241*(-str_whl_angle) + 0.7268)*np.pi / 180) - 1.86 / 2
             self.radius = 1.405 *(1.0/ np.tan((-1.26e-07*str_whl_angle*str_whl_angle*str_whl_angle -3.465e-05*str_whl_angle*str_whl_angle\
                          -0.07095*str_whl_angle+0.005486)*np.pi / 180)+ 1.0/ np.tan((-1.117e-08*str_whl_angle*str_whl_angle*str_whl_angle \
                         -8.026e-06*str_whl_angle*str_whl_angle -0.06596*str_whl_angle+ 0.1141)*np.pi / 180))
         else:
-#             self.radius = 2.81 / np.tan((5.955e-06*(str_whl_angle)*(str_whl_angle) + 0.05241*(str_whl_angle) + 0.7268)*np.pi / 180) - 1.86 / 2
             self.radius = 1.405 *(1.0/ np.tan((1.268e-08*str_whl_angle*str_whl_angle*str_whl_angle -8.519e-06*str_whl_angle*str_whl_angle \
                         +0.06658*str_whl_angle+0.09346)*np.pi / 180)+ 1.0/ np.tan((1.022e-07*str_whl_angle*str_whl_angle*str_whl_angle \
                         -2.414e-05*str_whl_angle*str_whl_angle +0.06928*str_whl_angle+ 0.007839)*np.pi / 180))
+        """
+        # EP21 2#
+        if str_whl_angle < 0:
+            self.radius = 2.81 *1.0 / np.tan((5.71e-08*str_whl_angle*str_whl_angle*str_whl_angle - 4.01e-05*str_whl_angle*str_whl_angle\
+                         + 0.067363*str_whl_angle + 0.252692)*np.pi / 180) - 1.91 / 2.0
+        else:
+            self.radius = 2.81 *1.0 / np.tan((8.73e-08*str_whl_angle*str_whl_angle*str_whl_angle + 6.56e-06*str_whl_angle*str_whl_angle \
+                        + 0.064772*str_whl_angle + 0.061055)*np.pi / 180) + 1.91 / 2.0
+        """
         return self.radius
         
     def traject_predict_world(self, vhcl_can_data, time_offset):
@@ -128,7 +136,12 @@ class VehicleMotion:
         shft_pos = vhcl_can_data.data["shift_pos"]
         str_whl_angle = vhcl_can_data.data["steering_angle"]
         radius = self._steeringwheel_radius(str_whl_angle, shft_pos)
+#         print "R:", radius
+        # EP21 1#
         speed = (vhcl_can_data.data["wheel_speed_rl"] + vhcl_can_data.data["wheel_speed_rr"])/2/3.6 # 将速度从km/h -> m/s
+#         # EP21 2#
+#         speed = (vhcl_can_data.data["wheel_speed_fl"] + vhcl_can_data.data["wheel_speed_fr"])/2/3.6 # 将速度从km/h -> m/s
+        
         track_offset = time_offset / 1000000.0 *speed
         track_offset /= TIME_SCALE
 #         print "s:",str_whl_angle, "r:",radius

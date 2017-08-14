@@ -9,15 +9,15 @@ from vehicle_model import CanMatchLog,VehicleMotion, can_insert
 from draw_map import PosMap
 import numpy as np
 
-can_filename = r"E:\LOC_Code_Dataset\oflim相机数据\ofilm_raw_data_ug\20170706_EP21_car01\2_中圈x1_右车道_2\can_match.txt"
+can_filename = r"E:\LOC_Code_Dataset\saic_dataset\oflim相机数据\ofilm_raw_data_ug\20170807_EP21_car02\01_入口进车库分别在左中右车道绕外圈多次\can_match.txt"
 can_dir = os.path.split(can_filename)[0]
 img_filename = can_dir + r"\pose_map.jpg"
 note_filename = can_dir + r"\pose_setting.cfg"
-start = 000
-stop = 8000
+start = 1001
+stop = 1500
 start_point = [0, 0, 0] # xm, ym, deg
-rot_table = {587: -2, 139: -2}
-key_point = []
+rot_table = {}
+key_point = [1058,1081,1105,1124,1234]
 
 
 def save_fit_table(note_filename):
@@ -48,6 +48,7 @@ def generate_pose(can_match_logs):
     _vhcl_can_data = None
     for _i,vhcl_can_data in enumerate(can_match_logs):
         if _i > 0:
+            print _i,
             times = (vhcl_can_data.data["time_stamp"] - _vhcl_can_data.data["time_stamp"]) #/ time_unit
             vm.traject_predict_world(vhcl_can_data, times)
             if vhcl_can_data.data["frameID"] in rot_table:
