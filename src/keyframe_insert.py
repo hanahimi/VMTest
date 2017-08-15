@@ -64,9 +64,9 @@ class LocDR:
         self.start_point = [self.keypoint_table[st].x,
                             self.keypoint_table[st].y,
                             self.keypoint_table[st].yaw_deg]
+        self.disp_start = 0
+        self.disp_end = 4000
         
-        self.start = 0
-        self.stop = 1500
         
     def insertDR(self):
         cfg_parser = TextParser()
@@ -79,7 +79,7 @@ class LocDR:
             if _i > 0:
                 times = (vhcl_can_data.data["time_stamp"] - _vhcl_can_data.data["time_stamp"]) #/ time_unit
                 vm.traject_predict_world(vhcl_can_data, times)
-                if vhcl_can_data.data["frameID"] in self.keys:
+                if (vhcl_can_data.data["frameID"] in self.keys):
                     print "update %d" % vhcl_can_data.data["frameID"]
                     key_point = self.keypoint_table[vhcl_can_data.data["frameID"]]
                     vm.setPosition(key_point.x,key_point.y,key_point.yaw_deg)
@@ -93,22 +93,28 @@ class LocDR:
         mapper = PosMap(cfg_tabel)
         for pos in vm_pose:
             pos_x, pos_y, pos_yaw, r, id_ = pos
-            if id_ >= self.start:
+            if self.disp_start < id_ < self.disp_end:
                 mapper.mark_position(pos_x, pos_y, pos_yaw, False)
-            if id_ == self.stop:
-                break
         img_filename = self.can_dir + r"\pose_map.jpg"
         mapper.disp_map(img_filename)
 
-
-
-
+    def save_pose(self, pos_filename, vm_pose):
+        with open(pos_filename, "w") as f:
+            for _i, pose in enumerate(vm_pose):
+                a = np.cos(pose[2])
+                b = np.sin(pose[2])
+                t = np.arccos(a) if b > 0 else -np.arccos(a)
+                msg = "%05d %f %f %f\n" % ( pose[4], pose[0],pose[1],t)
+                f.write(msg)
 
 if __name__=="__main__":
     pass
     loc_dr = LocDR()
+    loc_dr.disp_start = 0
+    loc_dr.disp_end = 2000
     vm_pose = loc_dr.insertDR()
     loc_dr.disp_pose(vm_pose)
-    
+    pos_filename = r"D:\bev\can_match_pos.txt"
+    loc_dr.save_pose(pos_filename, vm_pose)
     
     
