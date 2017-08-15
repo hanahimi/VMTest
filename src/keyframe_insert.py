@@ -49,11 +49,13 @@ class LocDR:
         cfgpar = cfg_parser.TextParser()
         cfg_table = cfgpar(config_path)
         self.bev_root = cfg_table["bev_root"]
+        self.gt_root = cfg_table["gt_root"]
+        
         self.can_match_path = cfg_table["can_match_path"]
         self.can_dir = os.path.split(self.can_match_path)[0]
         self.img_filename = self.can_dir + r"\pose_map.jpg"
         
-        gtlist = get_filelist(self.bev_root, ".txt")
+        gtlist = get_filelist(self.gt_root, ".txt")
         self.keypoint_table = getKeyframeTable(gtlist)
         self.can_match_logs = read_can_log(self.can_match_path)
 
@@ -63,7 +65,7 @@ class LocDR:
                             self.keypoint_table[st].y,
                             self.keypoint_table[st].yaw_deg]
         
-        self.start = 1001
+        self.start = 0
         self.stop = 1500
         
     def insertDR(self):
