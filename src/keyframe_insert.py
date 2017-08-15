@@ -114,7 +114,7 @@ if __name__=="__main__":
     loc_dr.disp_end = 2000
     vm_pose = loc_dr.insertDR()
     loc_dr.disp_pose(vm_pose)
-    pos_filename = r"D:\bev\can_match_pos.txt"
+    pos_filename = r"I:\LOC_Code_Dataset\saic_dataset\oflim相机数据\ofilm_raw_data_ug\20170807_EP21_car02\01_入口进车库分别在左中右车道绕外圈多次\can_match_pos2.txt"
     loc_dr.save_pose(pos_filename, vm_pose)
     
     
