@@ -9,15 +9,15 @@ from vehicle_model import CanMatchLog,VehicleMotion, can_insert
 from draw_map import PosMap
 import numpy as np
 
-can_filename = r"E:\LOC_Code_Dataset\saic_dataset\oflim相机数据\ofilm_raw_data_ug\20170807_EP21_car02\01_入口进车库分别在左中右车道绕外圈多次\can_match.txt"
+can_filename = r"E:\LOC_Code_Dataset\saic_dataset\oflim相机数据\ofilm_raw_data_ug\20170706_EP21_car01\2_中圈x1_右车道\can_match.txt"
 can_dir = os.path.split(can_filename)[0]
 img_filename = can_dir + r"\pose_map.jpg"
 note_filename = can_dir + r"\pose_setting.cfg"
-start = 1001
-stop = 1500
+start = 0
+stop = 15000
 start_point = [0, 0, 0] # xm, ym, deg
-rot_table = {}
-key_point = [1058,1081,1105,1124,1234]
+rot_table = {587: -2, 139: -2}
+key_point = []
 
 
 def save_fit_table(note_filename):
@@ -53,8 +53,7 @@ def generate_pose(can_match_logs):
             vm.traject_predict_world(vhcl_can_data, times)
             if vhcl_can_data.data["frameID"] in rot_table:
                 vm.theta += np.deg2rad(rot_table[vhcl_can_data.data["frameID"]])
-            pose.append((vm.pos.x, vm.pos.y, vm.theta, vm.radius, int(vhcl_can_data.data["frameID"])))
-#             print vhcl_can_data.strframeId, vm.pos.x, vm.pos.y
+            pose.append((vm.pos.x, vm.pos.y, vm.theta, vm.radius, int(vhcl_can_data.data["frameID"]), vhcl_can_data.data["time_stamp"]))
         _vhcl_can_data =  vhcl_can_data
     return pose
 
@@ -63,13 +62,13 @@ def disp_pose(vm_pose):
     cfg_tabel = cfg_parser("data/vehicle_config.cfg")
     mapper = PosMap(cfg_tabel)
     for pos in vm_pose:
-        pos_x, pos_y, pos_yaw, r, id_ = pos
+        pos_x, pos_y, pos_yaw, r, id_, timestamp = pos
         if id_ >= start:
             mapper.mark_position(pos_x, pos_y, pos_yaw, False)
         if id_ == stop:
             break
     for pos in vm_pose:
-        pos_x, pos_y, pos_yaw, r, id_ = pos
+        pos_x, pos_y, pos_yaw, r, id_, timestamp = pos
         if id_ >= start:
             if id_ in key_point:
                 print id_
@@ -87,7 +86,7 @@ def save_pose(pos_filename, vm_pose):
             a = np.cos(pose[2])
             b = np.sin(pose[2])
             t = np.arccos(a) if b > 0 else -np.arccos(a)
-            msg = "%05d %f %f %f\n" % ( pose[4], pose[0],pose[1],t)
+            msg = "%05d %ld %f %f %f\n" % ( pose[4], pose[5], pose[0],pose[1],t)
             f.write(msg)
 
 def main():
